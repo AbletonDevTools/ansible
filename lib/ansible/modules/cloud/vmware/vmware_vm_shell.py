@@ -150,7 +150,7 @@ def main():
     argument_spec = vmware_argument_spec()
     argument_spec.update(dict(datacenter=dict(default=None, type='str'),
                               cluster=dict(default=None, type='str'),
-                              folder=dict(type='str', default='/vm'),
+                              folder=dict(type='str', default=None),
                               vm_id=dict(required=True, type='str'),
                               vm_id_type=dict(default='vm_name', type='str', choices=['inventory_path', 'uuid', 'dns_name', 'vm_name']),
                               vm_username=dict(required=False, type='str'),

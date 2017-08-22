@@ -157,7 +157,7 @@ def main():
     argument_spec.update(
         name=dict(type='str'),
         name_match=dict(type='str', default='first'),
-        folder=dict(type='str', default='/vm'),
+        folder=dict(type='str', default=None),
         uuid=dict(type='str'),
     )
     module = AnsibleModule(
@@ -165,10 +165,6 @@ def main():
         required_one_of=[['name', 'uuid']],
         required_together=['name', 'folder']
     )
-
-    # FindByInventoryPath() does not require an absolute path
-    # so we should leave the input folder path unmodified
-    module.params['folder'] = module.params['folder'].rstrip('/')
 
     pyv = PyVmomiHelper(module)
     # Check if the VM exists before continuing

@@ -1181,28 +1181,26 @@ class PyVmomiHelper(object):
         if datacenter is None:
             self.module.fail_json(msg='No datacenter named %(datacenter)s was found' % self.params)
 
-        # Prepend / if it was missing from the folder path, also strip trailing slashes
-        if not self.params['folder'].startswith('/'):
-            self.params['folder'] = '/%(folder)s' % self.params
-        self.params['folder'] = self.params['folder'].rstrip('/')
+        folder = self.params['folder'] or ''
+        # Remove any leading or trailing slashes from the folder name
+        folder = folder.lstrip('/').rstrip('/')
 
         dcpath = compile_folder_path_for_object(datacenter)
+        dcpath = dcpath.lstrip('/').rstrip('/')
 
-        # Check for full path first in case it was already supplied
-        if (self.params['folder'].startswith(dcpath + self.params['datacenter'] + '/vm')):
-            fullpath = self.params['folder']
-        elif (self.params['folder'].startswith('/vm/') or self.params['folder'] == '/vm'):
-            fullpath = "%s%s%s" % (dcpath, self.params['datacenter'], self.params['folder'])
-        elif (self.params['folder'].startswith('/')):
-            fullpath = "%s%s/vm%s" % (dcpath, self.params['datacenter'], self.params['folder'])
+        # If no folder has been given, then just use the datacenter
+        if not folder:
+            fullpath = "%s/vm" % self.params['datacenter']
+        elif folder.startswith("vm"):
+            fullpath = "%s/%s" % (self.params['datacenter'], folder)
         else:
-            fullpath = "%s%s/vm/%s" % (dcpath, self.params['datacenter'], self.params['folder'])
+            fullpath = "%s/vm/%s" % (self.params['datacenter'], folder)
 
         f_obj = self.content.searchIndex.FindByInventoryPath(fullpath)
 
         # abort if no strategy was successful
         if f_obj is None:
-            self.module.fail_json(msg='No folder matched the path: %(folder)s' % self.params)
+            self.module.fail_json(msg='No folder matched the path: %s' % fullpath)
         destfolder = f_obj
 
         if self.params['template']:
@@ -1433,7 +1431,7 @@ def main():
         name=dict(type='str', required=True),
         name_match=dict(type='str', choices=['first', 'last'], default='first'),
         uuid=dict(type='str'),
-        folder=dict(type='str', default='/vm'),
+        folder=dict(type='str', default=None),
         guest_id=dict(type='str'),
         disk=dict(type='list', default=[]),
         hardware=dict(type='dict', default={}),
@@ -1457,10 +1455,6 @@ def main():
                            )
 
     result = {'failed': False, 'changed': False}
-
-    # FindByInventoryPath() does not require an absolute path
-    # so we should leave the input folder path unmodified
-    module.params['folder'] = module.params['folder'].rstrip('/')
 
     pyv = PyVmomiHelper(module)
 
