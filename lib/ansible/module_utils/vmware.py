@@ -184,7 +184,6 @@ def find_vm_by_id(content, vm_id, vm_id_type="vm_name", datacenter=None, cluster
     elif vm_id_type == 'ip':
         vm = si.FindByIp(datacenter=datacenter, ip=vm_id, vmSearch=True)
     elif vm_id_type == 'vm_name':
-        folder = None
         if cluster:
             folder = cluster
         elif datacenter:
