@@ -125,7 +125,10 @@ class ActionModule(ActionBase):
             # save the attributes on the existing (duped) stdin so
             # that we can restore them later after we set raw mode
             if PY3:
-                stdin = self._connection._new_stdin.buffer
+                try:
+                    stdin = self._connection._new_stdin.buffer
+                except AttributeError:
+                    stdin = self._connection._new_stdin
             else:
                 stdin = self._connection._new_stdin
             fd = None
